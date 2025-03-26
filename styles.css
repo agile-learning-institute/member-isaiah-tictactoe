@@ -127,11 +127,10 @@ form {
     }
     & span:nth-child(even) {
         color: var(--accent-2);
-        transition: transform 0.4s;
+
     }
     & span:nth-child(odd) {
         color: var(--accent-1);
-        transition: transform 0.4s;
     }
     & span:nth-child(even):hover,
     span:nth-child(odd):hover {
