@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="main.js" defer></script>
+    <title>Isaiah Tic-Tac-Toe</title>
+</head> 
+<body>
+    <div class="container">
+        <div id="start">
+            <h1 class="title margin-btm-med large">Tic <span>Tac</span> <span>Toe</span></h1>
+            <form>
+                <label for="p1_name">Player 1<span class="material-symbols-outlined player-1">close</span>?</label>
+                <input type="text" name="player1_name" id="p1_name" maxlength="8">
+                <label for="p2_name">Player 2<span class="material-symbols-outlined player-2">circle</span>?</label>
+                <input type="text" name="player2_name" id="p2_name" class="margin-btm-med" maxlength="8">
+                <button type="submit">Start!</button>
+            </form>
+        </div>
+        <div id="game" class="hidden">
+            <div id="top">
+                <button type="button" id="play-again" class="hidden-vis-only btn-normal">Play Again</button>
+                <h3 id="winner"></h3>
+            </div>
+            <div id="board">
+            </div>
+            <div id="gui">
+                <div id="scoreboard">
+                    <div class="score player-1">
+                        <p id="nameP1">Player 1</p>
+                        <p id="scoreP1">0</p>
+                    </div>
+                    <div class="score ties">
+                        <p>Ties</p>
+                        <p id="ties">0</p>
+                    </div>
+                    <div class="score player-2">
+                        <p id="nameP2">Player 2</p>
+                        <p id="scoreP2">0</p>
+                    </div>
+                </div>
+                <div class="center-items">
+                    <button type="button" id="reset" class="btn-normal padding-sm foreground-color inline align-middle small-font" >Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
