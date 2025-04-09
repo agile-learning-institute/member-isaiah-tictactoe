@@ -251,197 +251,144 @@ const GameController = (function () {
     }
 })();
 
-const GUIHandler = (function () {
-    const P1_TEXT_REPR = "close"; 
-    const P2_TEXT_REPR = "circle";
+const GUIHandler = (() => {
+    const P1_TEXT = "close";
+    const P2_TEXT = "circle";
     const container = document.querySelector("#board");
-    
+
     let alreadyInit = false;
-    let p1Name = null; 
-    let p2Name = null;
+    let p1Name, p2Name;
+
+    const $ = (selector) => document.querySelector(selector);
 
     const initialize = () => {
-        const submitBtn = document.querySelector("form>button");
+        $("form>button").addEventListener("click", (e) => {
+            e.preventDefault();
 
-        submitBtn.addEventListener("click", (e) => {
-            const labelNameP1 = document.querySelector("#nameP1");
-            const labelNameP2 = document.querySelector("#nameP2");
-            const textNameP1 = document.querySelector("#p1_name"); 
-            const textNameP2 = document.querySelector("#p2_name");
-            const startContainer = document.querySelector("#start");
-            const gui = document.querySelector("#game");
+            p1Name = $("#p1_name").value || "Player 1";
+            p2Name = $("#p2_name").value || "Player 2";
 
-            p1Name = textNameP1.value !== "" ? textNameP1.value : "Player 1";
-            p2Name = textNameP2.value !== "" ? textNameP2.value : "Player 2";
-            labelNameP1.textContent = p1Name;
-            labelNameP2.textContent = p2Name;
-            startContainer.classList.add("hidden");
-            gui.classList.remove("hidden");
+            $("#nameP1").textContent = p1Name;
+            $("#nameP2").textContent = p2Name;
+            $("#start").classList.add("hidden");
+            $("#game").classList.remove("hidden");
 
-            if(!alreadyInit) {
+            if (!alreadyInit) {
                 alreadyInit = true;
                 createGrid();
                 createResetButton();
             }
-            
-            e.preventDefault();
         });
 
-        const resetBtn = document.querySelector("#reset");
-        resetBtn.addEventListener("click", (e) => {
-            const textNameP1 = document.querySelector("#p1_name"); 
-            const textNameP2 = document.querySelector("#p2_name");
-            textNameP1.value = "";
-            textNameP2.value = "";
-
-            const startContainer = document.querySelector("#start");
-            const gui = document.querySelector("#game");
-            startContainer.classList.remove("hidden");
-            gui.classList.add("hidden");
+        $("#reset").addEventListener("click", () => {
+            $("#p1_name").value = "";
+            $("#p2_name").value = "";
+            $("#start").classList.remove("hidden");
+            $("#game").classList.add("hidden");
 
             reset();
             GameController.resetScores();
             updateScores();
         });
-    }   
+    };
 
     const listenToGameController = () => {
-        let gcStatus = GameController.getStatus();
-        const winnerText = document.querySelector("#winner");
+        const status = GameController.getStatus();
+        const winnerText = $("#winner");
 
-        switch (gcStatus) {
-            case GameController.ST_PLAY:
-                break;
-            case GameController.ST_HASTIE:
-                showResetButton(true);
-                winnerText.textContent = "Tie!";
-                updateScores();
-                break;
-            case GameController.ST_HASWINNER:
-                showResetButton(true);
-                const winningMarker = GameController.getWinner() === Gameboard.MARKER_P1 ? 'X' : 'O';
-                const winningPlayer = GameController.getWinner() === Gameboard.MARKER_P1 ? p1Name : p2Name;
-                winnerText.textContent = `${winningPlayer} won!`;
-                updateScores();
-                displayWinningCells();
-                break;
+        if (status === GameController.ST_HASTIE) {
+            showResetButton(true);
+            winnerText.textContent = "Tie!";
         }
 
-    }
+        if (status === GameController.ST_HASWINNER) {
+            showResetButton(true);
+            const winner = GameController.getWinner();
+            const marker = winner === Gameboard.MARKER_P1 ? 'X' : 'O';
+            const name = winner === Gameboard.MARKER_P1 ? p1Name : p2Name;
+            winnerText.textContent = `${name} won!`;
+            displayWinningCells();
+        }
+
+        updateScores();
+    };
 
     const displayWinningCells = () => {
-        let winningCells = GameController.getWinningCells();
-        for(const cell of winningCells) {
-            const row = cell[0];
-            const col = cell[1];
-
-            const element = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            element.classList.add("highlight");
-        }
-        console.log(winningCells);
-    }
+        GameController.getWinningCells().forEach(([row, col]) => {
+            $(`[data-row="${row}"][data-col="${col}"]`).classList.add("highlight");
+        });
+    };
 
     const updateScores = () => {
-        const pScoreP1 = document.querySelector("p#scoreP1");
-        const pScoreP2 = document.querySelector("p#scoreP2");
-        const pTies = document.querySelector("p#ties");
-
-        pScoreP1.textContent = GameController.getScore("p1");
-        pScoreP2.textContent = GameController.getScore("p2");
-        ties.textContent = GameController.getScore("ties");
-    }
+        $("#scoreP1").textContent = GameController.getScore("p1");
+        $("#scoreP2").textContent = GameController.getScore("p2");
+        $("#ties").textContent = GameController.getScore("ties");
+    };
 
     const createGrid = () => {
-        
         for (let r = 0; r < Gameboard.ROWS; r++) {
             for (let c = 0; c < Gameboard.COLUMNS; c++) {
                 const cell = document.createElement("div");
-                cell.classList.add("cell");
-                cell.dataset.row = `${r}`;
-                cell.dataset.col = `${c}`;
+                cell.className = "cell";
+                cell.dataset.row = r;
+                cell.dataset.col = c;
 
-                const para = document.createElement("p");
-                para.classList.add("material-symbols-outlined");
-                cell.append(para);
+                const symbol = document.createElement("p");
+                symbol.className = "material-symbols-outlined";
+                cell.append(symbol);
 
                 container.append(cell);
             }
         }
 
         container.addEventListener("click", (e) => {
-            const target = e.target;
-            const isACell = target.classList.contains("cell");
+            const cell = e.target.closest(".cell");
+            if (!cell) return;
 
-            if (isACell) {
-                const row = target.dataset.row;
-                const col = target.dataset.col;
-
-                GameController.play(row, col);
-                reflectGrid();
-                listenToGameController();
-            }
-
+            GameController.play(cell.dataset.row, cell.dataset.col);
+            reflectGrid();
+            listenToGameController();
         });
-    }
+    };
 
     const reflectGrid = () => {
-        for (const cell of container.children) {
-            const row = cell.dataset.row;
-            const col = cell.dataset.col;
+        Array.from(container.children).forEach((cell) => {
+            const { row, col } = cell.dataset;
             const para = cell.querySelector("p");
+            const mark = Gameboard.getBoard()[row][col];
 
-            if (Gameboard.getBoard()[row][col] === Gameboard.MARKER_P1) {
-                para.textContent = P1_TEXT_REPR;
-                para.classList.add("player-1");
-            }
-            else if (Gameboard.getBoard()[row][col] === Gameboard.MARKER_P2) {
-                para.textContent = P2_TEXT_REPR;
-                para.classList.add("player-2");
-            }
-            else {
-                para.textContent = "";
-            }
-        }
-    }
+            para.textContent = mark === Gameboard.MARKER_P1 ? P1_TEXT : mark === Gameboard.MARKER_P2 ? P2_TEXT : "";
+            para.className = "material-symbols-outlined";
+            if (mark === Gameboard.MARKER_P1) para.classList.add("player-1");
+            if (mark === Gameboard.MARKER_P2) para.classList.add("player-2");
+        });
+    };
 
     const reset = () => {
         GameController.reset();
         reflectGrid();
         showResetButton(false);
-
-        const winner = document.querySelector("#winner");
-        winner.textContent = "";
-
+        $("#winner").textContent = "";
         clearCellColors();
-    }
+    };
 
     const createResetButton = () => {
-        const resetButton = document.querySelector("#play-again");
-
-        resetButton.addEventListener("click", (e) => {
-            reset();
-        });
-    }
+        $("#play-again").addEventListener("click", reset);
+    };
 
     const clearCellColors = () => {
-        for (const cell of container.children) {
+        Array.from(container.children).forEach((cell) => {
             const para = cell.querySelector("p");
-            para.classList.remove("player-1");
-            para.classList.remove("player-2");
+            para.classList.remove("player-1", "player-2");
             cell.classList.remove("highlight");
-        }
-    }
+        });
+    };
 
-    const showResetButton = (doShow) => {
-        const resetButton = document.querySelector("#play-again");
-        doShow ? resetButton.classList.remove("hidden-vis-only") : resetButton.classList.add("hidden-vis-only");
-    }
+    const showResetButton = (show) => {
+        $("#play-again").classList.toggle("hidden-vis-only", !show);
+    };
 
-    return {
-        initialize,
-        createGrid,
-        createResetButton,
-    }
+    return { initialize };
 })();
 
 GUIHandler.initialize();
