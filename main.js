@@ -85,85 +85,46 @@ const GameController = (function () {
     }
 
     const checkWinner = (board, currentMarker) => {
-        for (let c = 0; c < Gameboard.COLUMNS; c++) {
+        const size = Gameboard.SIZE;
+        const rows = Gameboard.ROWS;
+        const cols = Gameboard.COLUMNS;
+    
+        const checkLine = (cells) => {
             let matches = 0;
-            for (let r = 0; r < Gameboard.ROWS; r++) {
+            winningCells = [];
+    
+            for (const [r, c] of cells) {
                 if (board[r][c] === currentMarker) {
                     matches++;
                     winningCells.push([r, c]);
-                }
-                else {
+                } else {
                     winningCells = [];
                     break;
                 }
             }
-
-            if (matches === MUST_MATCH) {
-                return currentMarker;
-            }
+    
+            return matches === MUST_MATCH;
+        };
+    
+        for (let c = 0; c < cols; c++) {
+            const cells = Array.from({ length: rows }, (_, r) => [r, c]);
+            if (checkLine(cells)) return currentMarker;
+        }
+    
+        for (let r = 0; r < rows; r++) {
+            const cells = Array.from({ length: cols }, (_, c) => [r, c]);
+            if (checkLine(cells)) return currentMarker;
         }
 
-        for (let r = 0; r < Gameboard.ROWS; r++) {
-            let matches = 0;
-            for (let c = 0; c < Gameboard.COLUMNS; c++) {
-                if (board[r][c] === currentMarker) {
-                    matches++;
-                    winningCells.push([r, c]);
-                }
-                else {
-                    winningCells = [];
-                    break;
-                }
-            }
-
-            if (matches === MUST_MATCH) {
-                return currentMarker;
-            }
-        }
-
-        let pointer = 0;
-        let matches = 0;
-        while (pointer < Gameboard.SIZE) {
-            if (board[pointer][pointer] === currentMarker){
-                matches++;
-                winningCells.push([pointer, pointer]);
-            }
-            else {
-                winningCells = [];
-                break;
-            }
-
-            pointer++;
-        }
-
-        if (matches === MUST_MATCH) {
-            return currentMarker;
-        }
-
-        pointer = 0;
-        matches = 0;
-        while (pointer < Gameboard.SIZE) {
-            const col = (Gameboard.SIZE - 1) - pointer;
-
-            if (board[pointer][col] === currentMarker) {
-                matches++;
-                winningCells.push([pointer, col]);
-            }
-            else
-            {
-                winningCells = [];
-                break;
-            }
-
-            pointer++;
-        }
-
-        if (matches === MUST_MATCH) {
-            return currentMarker;
-        }
-
+        const mainDiagonal = Array.from({ length: size }, (_, i) => [i, i]);
+        if (checkLine(mainDiagonal)) return currentMarker;
+    
+        const antiDiagonal = Array.from({ length: size }, (_, i) => [i, size - 1 - i]);
+        if (checkLine(antiDiagonal)) return currentMarker;
+    
         return null;
-    }
+    };
+    
 
     const hasFreeSpace = () => {
         for (const col of Gameboard.getBoard()) {
